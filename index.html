@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple spinner animation */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-2xl">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10">
+            <!-- Header Section -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                    AI Image Generator
+                </h1>
+                <p class="text-gray-400 mt-2">Powered by Google's Imagen Model</p>
+            </div>
+
+            <!-- Prompt Input Section -->
+            <div class="mb-6">
+                <label for="prompt-input" class="block mb-2 text-sm font-medium text-gray-300">Enter your prompt</label>
+                <textarea id="prompt-input" rows="3" class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-white resize-none" placeholder="e.g., A futuristic cityscape at sunset, with flying cars and neon lights"></textarea>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generate-btn" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300 ease-in-out">
+                Generate Image
+            </button>
+
+            <!-- Image Display & Loading Section -->
+            <div id="image-container" class="mt-8 w-full aspect-square bg-gray-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600">
+                 <!-- Loader -->
+                <div id="loader" class="hidden loader"></div>
+                 <!-- Generated Image -->
+                <img id="generated-image" src="" alt="Generated AI Image" class="hidden rounded-lg w-full h-full object-cover">
+                 <!-- Placeholder Text -->
+                <div id="placeholder" class="text-center text-gray-500">
+                    <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="mt-2">Your generated image will appear here</p>
+                </div>
+                 <!-- Error Message -->
+                <div id="error-message" class="hidden text-center text-red-400 p-4">
+                    <p>Sorry, something went wrong. Please try again.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const generateBtn = document.getElementById('generate-btn');
+        const promptInput = document.getElementById('prompt-input');
+        const imageContainer = document.getElementById('image-container');
+        const generatedImage = document.getElementById('generated-image');
+        const loader = document.getElementById('loader');
+        const placeholder = document.getElementById('placeholder');
+        const errorMessage = document.getElementById('error-message');
+
+        // --- Event Listener ---
+        generateBtn.addEventListener('click', generateImage);
+
+        /**
+         * Main function to generate an image from the user's prompt.
+         */
+        async function generateImage() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                alert("Please enter a prompt."); // Simple validation
+                return;
+            }
+
+            // --- UI State Updates: Start Loading ---
+            setLoadingState(true);
+
+            try {
+                // --- API Call to Generate Image ---
+                // The payload specifies the prompt and the number of images to generate.
+                const payload = {
+                    instances: [{ prompt: prompt }],
+                    parameters: { "sampleCount": 1 }
+                };
+
+                // NOTE: The API key is left empty (""). The execution environment
+                // automatically provides the necessary authentication.
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // --- Process and Display the Image ---
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    // The image is returned as a base64 encoded string.
+                    const imageData = result.predictions[0].bytesBase64Encoded;
+                    // Prepend the necessary data URI scheme to display it.
+                    generatedImage.src = `data:image/png;base64,${imageData}`;
+                    
+                    // --- UI State Updates: Show Image ---
+                    setLoadingState(false, true);
+                } else {
+                    // Handle cases where the response structure is unexpected.
+                    throw new Error("Invalid response format from API.");
+                }
+
+            } catch (error) {
+                console.error("Error generating image:", error);
+                // --- UI State Updates: Show Error ---
+                setLoadingState(false, false, true);
+            }
+        }
+
+        /**
+         * Helper function to manage the UI state (loader, image, placeholder, error).
+         * @param {boolean} isLoading - True if the API call is in progress.
+         * @param {boolean} [showImage=false] - True to display the generated image.
+         * @param {boolean} [showError=false] - True to display the error message.
+         */
+        function setLoadingState(isLoading, showImage = false, showError = false) {
+            if (isLoading) {
+                loader.classList.remove('hidden');
+                generateBtn.disabled = true;
+                generateBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                placeholder.classList.add('hidden');
+                generatedImage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+            } else {
+                loader.classList.add('hidden');
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                if (showImage) {
+                    generatedImage.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                } else if (showError) {
+                    errorMessage.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    generatedImage.classList.add('hidden');
+                } else { // Reset to initial state
+                    placeholder.classList.remove('hidden');
+                    generatedImage.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
