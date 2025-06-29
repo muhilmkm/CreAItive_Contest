@@ -5,16 +5,20 @@
   <title>Class 8 Science Visuals</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       background-color: #f0f8ff;
       text-align: center;
       padding: 40px;
+    }
+    h1 {
+      color: #1d3557;
     }
     input, button {
       padding: 10px;
       font-size: 18px;
       margin: 10px;
-      width: 300px;
+      width: 320px;
+      border-radius: 5px;
     }
     img {
       max-width: 80%;
@@ -22,42 +26,107 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
+    #explanation {
+      margin: 20px auto;
+      font-size: 16px;
+      color: #333;
+      max-width: 800px;
+      background: #e1f5fe;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    #topics {
+      margin-top: 30px;
+      font-size: 16px;
+      color: #444;
+    }
   </style>
 </head>
 <body>
-  <h1>Ask Science Question (Class 8)</h1>
-  <input id="question" placeholder="e.g. What is photosynthesis?" />
+
+  <h1>Class 8 Science Visual Explorer</h1>
+  <p>Type your science topic (e.g. <em>photosynthesis</em>, <em>digestive</em>, <em>solar</em>)</p>
+
+  <input id="question" placeholder="Enter your science question here" />
   <br />
-  <button onclick="showImage()">Show Image</button>
+  <button onclick="showImage()">Show Diagram</button>
+
   <p id="status"></p>
+  <div id="explanation"></div>
   <div id="result"></div>
+
+  <div id="topics">
+    <strong>Available Topics:</strong> respiration, photosynthesis, digestive, circulatory, water cycle, rainwater, reproduction, electric, solar, human eye, constellation, plant cell, animal cell
+  </div>
 
   <script>
     const imageMap = {
-      "respiration": "human-respiration.jpg",
-      "photosynthesis": "photosynthesis.jpg",
-      "digestive": "digestive-system.jpg",
-      "circulatory": "circulatory-system.jpg",
-      "water cycle": "water-cycle.jpg",
-      "rainwater": "rainwater.jpg",
-      "reproduction": "reproduction_in_animals.png",
-      "electric":"electric-circuit.jpg",
-      "solar":"solar-system.jpg",
-      "human eye":"human-eye.jpg",
-      "constellation":"constellation.jpg",
-      "plant cell":"plant_cell.jpg",
-      "animal cell":"animal_cell.jpg"
+      "respiration": {
+        img: "human-respiration.jpg",
+        desc: "The human respiratory system helps in breathing. It includes the nose, trachea, lungs, and diaphragm. Oxygen is inhaled and carbon dioxide is exhaled."
+      },
+      "photosynthesis": {
+        img: "photosynthesis.jpg",
+        desc: "Photosynthesis is the process where green plants make their food using sunlight, carbon dioxide, and water."
+      },
+      "digestive": {
+        img: "digestive-system.jpg",
+        desc: "The digestive system breaks down food into nutrients the body can absorb and use. Major parts include stomach, small intestine, etc."
+      },
+      "circulatory": {
+        img: "circulatory-system.jpg",
+        desc: "The circulatory system carries blood and nutrients throughout the body using the heart, blood, and vessels."
+      },
+      "water cycle": {
+        img: "water-cycle.jpg",
+        desc: "The water cycle describes how water moves between the earth and the atmosphere through evaporation, condensation, and precipitation."
+      },
+      "rainwater": {
+        img: "rainwater.jpg",
+        desc: "Rainwater harvesting collects and stores rain for future use. It helps in conserving water."
+      },
+      "reproduction": {
+        img: "reproduction_in_animals.png",
+        desc: "Reproduction is the biological process by which new individual organisms are produced from their parents."
+      },
+      "electric": {
+        img: "electric-circuit.jpg",
+        desc: "An electric circuit is a closed path in which electric current flows. It includes components like battery, bulb, wires, and switch."
+      },
+      "solar": {
+        img: "solar-system.jpg",
+        desc: "The solar system includes the sun and all celestial bodies orbiting it: planets, moons, asteroids, and more."
+      },
+      "human eye": {
+        img: "human-eye.jpg",
+        desc: "The human eye allows us to see. It includes parts like cornea, pupil, lens, retina, and optic nerve."
+      },
+      "constellation": {
+        img: "constellation.jpg",
+        desc: "Constellations are groups of stars forming recognizable patterns, like Orion or Ursa Major."
+      },
+      "plant cell": {
+        img: "plant_cell.jpg",
+        desc: "Plant cells have a cell wall, chloroplasts, and a large vacuole. They are the basic units of plant life."
+      },
+      "animal cell": {
+        img: "animal_cell.jpg",
+        desc: "Animal cells lack cell walls and chloroplasts. They have organelles like nucleus, mitochondria, and cytoplasm."
+      }
     };
 
     function showImage() {
       const input = document.getElementById("question").value.toLowerCase();
       const result = document.getElementById("result");
       const status = document.getElementById("status");
+      const explanation = document.getElementById("explanation");
 
       let found = false;
       for (const key in imageMap) {
         if (input.includes(key)) {
-          result.innerHTML = `<img src="images/${imageMap[key]}" alt="${key}" />`;
+          result.innerHTML = `<img src="images/${imageMap[key].img}" alt="${key}" />`;
+          explanation.innerText = imageMap[key].desc;
           status.innerText = "";
           found = true;
           break;
@@ -66,9 +135,11 @@
 
       if (!found) {
         result.innerHTML = "";
-        status.innerText = "No matching image found. Try topics like photosynthesis, respiration, digestive, water cycle, rainwater, circulatory etc.";
+        explanation.innerText = "";
+        status.innerText = "❌ No matching image found. Try available topics listed below.";
       }
     }
   </script>
+
 </body>
 </html>
